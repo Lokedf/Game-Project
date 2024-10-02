@@ -51,6 +51,7 @@ class GAMEPROJECT_API UMyTestComponent2ElectricBoogaloo : public UActorComponent
 	GENERATED_BODY()
 
 public:
+	int mySeed = time(NULL);
 	// Sets default values for this component's properties
 	UMyTestComponent2ElectricBoogaloo();
 	// How many blocks in each dimension the tiles are.
@@ -69,6 +70,12 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	UFUNCTION(BlueprintCallable, Category = "Wave Function Collapse")
+	void GenerateMap();
+	UFUNCTION(BlueprintCallable, Category = "Wave Function Collapse")
+	int GetSeed();
+	UFUNCTION(BlueprintCallable, Category = "Wave Function Collapse")
+	void SetSeed(int aSeed);
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 private:

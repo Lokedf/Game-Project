@@ -20,19 +20,23 @@ const int Directions = 4; // Making this a constant for now, might change later.
 
 
 // Function to initialize the grid with random data
-int RandomizeValue(int min, int max) {
-	random_device rd;
-	mt19937 gen(rd());
-	uniform_int_distribution<int> disValue(min, max - 1);
-	return disValue(gen);
-	//for (auto& row : grid) {
-	//	for (auto& tile : row) {
-	//		tile.value = disValue(gen); // Randomly initialize tile value
-	//		for (int& connection : tile.connections) {
-	//			connection = disConnection(gen); // Randomly initialize connections
-	//		}
-	//	}
-	//}
+int RandomizeValue(int min, int max, int seed = 1) {
+	static std::mt19937 gen;               // Random number generator
+	static bool seeded = false;            // Track if the generator is seeded
+
+	if (!seeded) {                         // Only seed if not already seeded
+		if (seed == 1) {
+			gen.seed(time(NULL));          // Use time-based seed if no seed provided
+		}
+		else {
+			gen.seed(seed);                // Use the provided seed
+		}
+		seeded = true;                     // Mark as seeded
+	}
+
+	std::uniform_int_distribution<int> disValue(min, max - 1);
+
+	return disValue(gen);                  // Generate and return random number
 }
 
 // Define a structure to represent a tile
@@ -289,6 +293,14 @@ UMyTestComponent2ElectricBoogaloo::UMyTestComponent2ElectricBoogaloo()
 // Called when the game starts
 void UMyTestComponent2ElectricBoogaloo::BeginPlay()
 {
+	GenerateMap();
+
+};
+
+
+void UMyTestComponent2ElectricBoogaloo::GenerateMap()
+{
+	RandomizeValue(0, 10, mySeed);
 	//Super::BeginPlay();
 	GRID_SIZE = GridSize;
 
@@ -387,9 +399,17 @@ void UMyTestComponent2ElectricBoogaloo::BeginPlay()
 		}
 	}
 	//PrintGrid(grid);
+}
 
-};
+int UMyTestComponent2ElectricBoogaloo::GetSeed()
+{
+	return mySeed;
+}
 
+void UMyTestComponent2ElectricBoogaloo::SetSeed(int aSeed)
+{
+	mySeed = aSeed;
+}
 
 // Called every frame
 void UMyTestComponent2ElectricBoogaloo::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
