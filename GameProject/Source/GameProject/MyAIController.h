@@ -6,9 +6,9 @@
 #include "AIController.h"
 #include "CPPAIStateMachine.h"
 #include "CPPAIStates.h"
+#include "MyBaseCPPAIBlackBoardComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
-#include "EnemyBase.h"
 #include "MyAIController.generated.h"
 
 UCLASS()
@@ -19,12 +19,21 @@ class GAMEPROJECT_API AMyAIController : public AAIController
 public:
     AMyAIController();
 
+    UFUNCTION(BlueprintCallable, Category = "AIState")
+    void ChangeState(UCPPAIStateBase* NewState);
+
     virtual void Tick(float DeltaTime) override;
 
-    void ChangeAIState(EAIState NewState);
+    //void ChangeAIState(EAIState NewState);
 
-    void WieldWeaponEnemyBase();
-    void UnWieldWeaponEnemyBase();
+    bool WieldWeaponEnemyBase();
+    bool UnWieldWeaponEnemyBase();
+    UFUNCTION()
+    void EndAction();
+    AActor* myTarget = nullptr;
+
+    UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Blackboard")
+    UMyBaseCPPAIBlackBoardComponent* myBlackboard;
 
 protected:
     virtual void BeginPlay() override;
@@ -38,11 +47,19 @@ protected:
     UAISenseConfig_Sight* SightConfig;
 
     UFUNCTION()
+    void OnStateChange(EAIState NewState);
+
+    UFUNCTION()
     void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors);
+
+
 
 private:
     UPROPERTY()
     UCPPAIStateMachine* StateMachine;
+
+    UPROPERTY()
+    UCPPAIStateBase* CurrentState;
 
 
 

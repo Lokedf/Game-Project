@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+
 #include "EnemyBase.generated.h"
 
 UCLASS()
@@ -20,10 +21,14 @@ protected:
     virtual void BeginPlay() override;
 
 public:
-    // Declare a variable and a function to be used in Blueprint
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Enemy")
-    bool WieldingWeapon = false;
+    UFUNCTION(BlueprintCallable, Category = "AIState")
+    void StartFSM();
 
+    // Declare a variable and a function to be used in Blueprint
     UFUNCTION(BlueprintCallable, Category = "Enemy")
     void CPPWieldWeapon();
+    UFUNCTION(BlueprintCallable, Category = "Enemy")
+    void CPPUnWieldWeapon();
+    UFUNCTION(BlueprintCallable, Category = "Enemy")
+    void CPPEndAction();
 };

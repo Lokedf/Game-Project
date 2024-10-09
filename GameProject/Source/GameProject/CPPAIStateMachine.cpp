@@ -12,13 +12,8 @@ UCPPAIStateMachine::UCPPAIStateMachine() : CurrentState(nullptr)
 
 UCPPAIStateMachine::~UCPPAIStateMachine()
 {
-    for (auto& State : StateMap)
-    {
-        if (State.Value)
-        {
-            State.Value->ConditionalBeginDestroy();
-        }
-    }
+
+    StateMap.Empty();
 }
 
 void UCPPAIStateMachine::Initialize(AAIController* Owner)
@@ -36,7 +31,7 @@ void UCPPAIStateMachine::ChangeState(EAIState NewState, AAIController* Owner)
 
     if (StateMap.Contains(NewState))
     {
-        CurrentState = StateMap[NewState];
+        CurrentState = StateMap[NewState].Get();
     }
 
     if (CurrentState)
@@ -45,12 +40,17 @@ void UCPPAIStateMachine::ChangeState(EAIState NewState, AAIController* Owner)
     }
 }
 
+
 void UCPPAIStateMachine::UpdateCurrentState(AAIController* Owner, float DeltaTime)
 {
     if (CurrentState)
     {
         CurrentState->UpdateState(Owner, DeltaTime);
     }
+}
+
+void UCPPAIStateMachine::EndAction()
+{
 }
 
 void UCPPAIStateMachine::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors, AAIController* Owner)

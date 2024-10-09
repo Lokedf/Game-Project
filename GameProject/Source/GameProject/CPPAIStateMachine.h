@@ -26,6 +26,7 @@ public:
     void Initialize(AAIController* Owner);
     void ChangeState(EAIState NewState, AAIController* Owner);
     void UpdateCurrentState(AAIController* Owner, float DeltaTime);
+    void EndAction();
 
     // Handle perception updates
     void OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors, AAIController* Owner);
@@ -33,5 +34,5 @@ public:
 
 private:
     UCPPAIStateBase* CurrentState;
-    TMap<EAIState, UCPPAIStateBase*> StateMap;
+    TMap<EAIState, TWeakObjectPtr<UCPPAIStateBase>> StateMap;
 };

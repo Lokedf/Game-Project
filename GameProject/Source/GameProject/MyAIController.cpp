@@ -3,9 +3,15 @@
 
 #include "MyAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "EnemyBase.h"
+#include "CPPClearFocusState.h"
+#include "CPPSetMovementSpeedState.h"
+#include "CPPMoveToState.h"
+#include "CPPWaitState.h"
 
 AMyAIController::AMyAIController()
 {
+	myBlackboard = CreateDefaultSubobject<UMyBaseCPPAIBlackBoardComponent>(TEXT("Blackboard"));
 	// Initialize Perception Component and Sight Configuration
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
@@ -38,17 +44,40 @@ void AMyAIController::BeginPlay()
 	StateMachine = NewObject<UCPPAIStateMachine>(this);
 	StateMachine->Initialize(this);
 	StateMachine->ChangeState(EAIState::Passive, this);
+
 }
 
 void AMyAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	StateMachine->UpdateCurrentState(this, DeltaTime);
-}
 
-void AMyAIController::ChangeAIState(EAIState NewState)
+	if (CurrentState)
+	{
+		CurrentState->UpdateState(this, DeltaTime);
+	}
+}
+void AMyAIController::ChangeState(UCPPAIStateBase* NewState)
 {
-	StateMachine->ChangeState(NewState, this);
+	if (CurrentState)
+	{
+		CurrentState->ExitState(this);
+	}
+
+	CurrentState = NewState;
+
+	if (CurrentState)
+	{
+		CurrentState->EnterState(this);
+	}
+}
+//void AMyAIController::ChangeAIState(EAIState NewState)
+//{
+//	StateMachine->ChangeState(NewState, this);
+//}
+
+void AMyAIController::OnStateChange(EAIState NewState)
+{
+	StateMachine->EndAction();
 }
 
 void AMyAIController::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
@@ -59,28 +88,17 @@ void AMyAIController::OnPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 		if (Actor->ActorHasTag("Player"))
 		{
 			// Example: Change to chase state if player is detected
+			myTarget = Actor;
 			StateMachine->ChangeState(EAIState::Attack, this);
 		}
 	}
 }
 
-void AMyAIController::WieldWeaponEnemyBase()
+void AMyAIController::EndAction()
 {
-	// Access the controlled pawn
-	APawn* ControlledPawn = GetPawn();
-	if (ControlledPawn)
-	{
-		// Cast to AEnemyBase
-		AEnemyBase* EnemyBase = Cast<AEnemyBase>(ControlledPawn);
-		if (EnemyBase)
-		{
-			// Access variables and call functions
-			bool WieldingWeapon = EnemyBase->WieldingWeapon;
-			EnemyBase->CPPWieldWeapon();
-		}
-	}
 }
-void AMyAIController::UnWieldWeaponEnemyBase()
+
+bool AMyAIController::WieldWeaponEnemyBase()
 {
 	// Access the controlled pawn
 	APawn* ControlledPawn = GetPawn();
@@ -91,8 +109,29 @@ void AMyAIController::UnWieldWeaponEnemyBase()
 		if (EnemyBase)
 		{
 			// Access variables and call functions
-			if(EnemyBase->WieldingWeapon)
+			if (!myBlackboard->GetValue<bool>("WeaponEquipped"))
 				EnemyBase->CPPWieldWeapon();
 		}
 	}
+	return false;
+}
+bool AMyAIController::UnWieldWeaponEnemyBase()
+{
+	// Access the controlled pawn
+	APawn* ControlledPawn = GetPawn();
+	if (ControlledPawn)
+	{
+		// Cast to AEnemyBase
+		AEnemyBase* EnemyBase = Cast<AEnemyBase>(ControlledPawn);
+		if (EnemyBase)
+		{
+			// Access variables and call functions
+			if (myBlackboard->GetValue<bool>("WeaponEquipped"))
+			{
+				EnemyBase->CPPUnWieldWeapon();
+				return true;
+			}
+		}
+	}
+	return false;
 }
